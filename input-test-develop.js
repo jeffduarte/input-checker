@@ -21,9 +21,9 @@ class InputTester {
                     let singleInputElementName = (element.getAttribute("data-name")) ? (element.getAttribute("data-name")) : (element.getAttribute("name"));
 
                     if(element.getAttribute("type") == "file")
-                        triggerMessage(inputFileMessage.replace("<inputmessage>", singleInputElementName), input.id);
+                        this.triggerMessage(inputFileMessage.replace("<inputmessage>", "<strong>" + singleInputElementName + "</strong>"), input.id);
                     else
-                        triggerMessage(inputMessage.replace("<inputmessage>", singleInputElementName), input.id);
+                        this.triggerMessage(inputMessage.replace("<inputmessage>", "<strong>" + singleInputElementName + "</strong>"), input.id);
                 }
 
             } else {
@@ -31,7 +31,7 @@ class InputTester {
                     Object.entries(input.checkFunctions).forEach(([index, checkFunction]) => {
                         if(!checkFunction(input.checkFunctionsParameters[index])) {
                             returnFalse = true;
-                            triggerMessage(input.message[index], input.id);
+                            this.triggerMessage(input.message[index], input.id);
                             return false;
                         }
                     });
@@ -55,17 +55,27 @@ class InputTester {
         return new Promise((resolve, reject) => {
 
             let returnFalse = false;
-        
-            inputs.forEach( (element, index) => {
+            let htmlElement = undefined;
+
+            inputs.reverse().forEach( (element, index) => {
+
+                htmlElement = document.getElementById(element.id);
                 
                 if(Object.entries(element.checkFunctions).length > 0) {
-                    Object.entries(element.checkFunctions).forEach(([index, checkFunction]) => {
-                            if(!checkFunction(element.checkFunctionsParameters[index])) {
-                                returnFalse = true;
-                                triggerMessage(element.message[index], element.id);
-                                return false;
-                            }
+
+                    if(htmlElement.getAttribute("type") != "file" && htmlElement.value != "" || htmlElement.getAttribute("type") == "file" && htmlElement.files.length != 0) {
+                        
+                        Object.entries(element.checkFunctions).forEach(([index, checkFunction]) => {
+                                if(!checkFunction(element.checkFunctionsParameters[index])) {
+                                    returnFalse = true;
+                                    this.triggerMessage(element.message[index], element.id);
+                                    return false;
+                                }
                         });
+
+                    }
+
+
                     }
 
                 if(returnFalse)
@@ -103,7 +113,7 @@ class InputTester {
             let elementID = "";
 
 
-            formInputs.forEach(element => {
+            formInputs.reverse().forEach(element => {
 
                 elementID = element.getAttribute("id");
 
@@ -111,17 +121,19 @@ class InputTester {
                     singleInputElementName = (element.getAttribute("data-name")) ? (element.getAttribute("data-name")) : (element.getAttribute("name"));
 
                     if(element.getAttribute("type") == "file") {
-                        triggerMessage(inputFileMessage.replace("<inputmessage>", singleInputElementName), elementID);
+                        this.triggerMessage(inputFileMessage.replace("<inputmessage>", "<strong>" + singleInputElementName + "</strong>"), elementID);
                         resolve(false);
                     }
                     else {
-                        triggerMessage(inputMessage.replace("<inputmessage>", singleInputElementName), elementID);
+                        this.triggerMessage(inputMessage.replace("<inputmessage>", "<strong>" + singleInputElementName + "</strong>"), elementID);
                         resolve(false);
                     }
                 }
 
 
             });
+
+            
             
             
             resolve(true);
@@ -136,7 +148,7 @@ class InputTester {
         let el = document.getElementById(id);
     
         if(el.getAttribute("type") == "file") {
-            if(document.getElementById(element.id).files.length == 0) {
+            if(el.files.length == 0) {
                 return true;
             }else
                 return false;
@@ -150,8 +162,10 @@ class InputTester {
 
 
     static triggerMessage(msg, id) {
+
+        
         Swal.fire({
-            text: msg,
+            html: msg,
             type: 'error',
             confirmButtonText: 'Ok',
             onAfterClose: () => document.getElementById(id).focus()
