@@ -54,6 +54,8 @@ class InputTester {
 
         return new Promise((resolve, reject) => {
 
+            
+
             let returnFalse = false;
             let htmlElement = undefined;
 
@@ -97,27 +99,38 @@ class InputTester {
     static checkRequiredElements(formID, inputMessage = this.inputMessage, inputFileMessage = this.inputFileMessage) {
         return new Promise((resolve, reject) => {
 
-                
             let returnFalse = false;
-            let form = document.getElementById(formID);
-            let formInputs = Array.from(form.getElementsByTagName("input"));
-
-
-            formInputs = formInputs.filter((element) => {
-                    if(element.hasAttribute("required")) 
-                        return element;
-                });
-
-
             let singleInputElementName = "";
             let elementID = "";
+            let el = undefined;
+            let form = undefined;
+
+            if(formID instanceof Element)
+                form = formID;
+            else
+                form = document.getElementById(formID);
+
+                
+            
+            // let form = document.getElementById(formID);
+            let formInputs = Array.from(form.elements);
+
+            console.log(formInputs);
+
+            formInputs = formInputs.filter((element) => {
+                if(element.hasAttribute("required") && (element.tagName.toLowerCase() == "input" || element.tagName.toLowerCase() == "select" || element.tagName.toLowerCase() == "textarea")) 
+                    return element;
+            });
+
+
+            
 
 
             formInputs.reverse().forEach(element => {
 
                 elementID = element.getAttribute("id");
 
-                if(this.emptyInputTest(elementID)) {
+                if(this.emptyInputTest(element)) {
                     singleInputElementName = (element.getAttribute("data-name")) ? (element.getAttribute("data-name")) : (element.getAttribute("name"));
 
                     if(element.getAttribute("type") == "file") {
@@ -132,9 +145,6 @@ class InputTester {
 
 
             });
-
-            
-            
             
             resolve(true);
 
@@ -145,7 +155,13 @@ class InputTester {
 
     static emptyInputTest(id) {
 
-        let el = document.getElementById(id);
+        let el = undefined;
+
+        if(id instanceof Element)
+            el = id;
+        else{
+            el = document.getElementById(id);
+        }
     
         if(el.getAttribute("type") == "file") {
             if(el.files.length == 0) {
@@ -164,11 +180,19 @@ class InputTester {
     static triggerMessage(msg, id) {
 
         
+        let el = undefined;
+
+        if(id instanceof Element)
+            el = id;
+        else{
+            el = document.getElementById(id);
+        }
+
         Swal.fire({
             html: msg,
             type: 'error',
             confirmButtonText: 'Ok',
-            onAfterClose: () => document.getElementById(id).focus()
+            onAfterClose: () => el.focus()
         });
     
     }
